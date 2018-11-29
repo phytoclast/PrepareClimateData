@@ -17,9 +17,36 @@ library(plyr)
 Biomeclimate <- read.delim("data/BiomeClimate3.txt")
 DaysMonth <- read.delim("data/DaysMonth.txt")
 biomesummary<-read.delim("data/biomesummary.txt")
+Norms2010<-read.delim("data/Norms2010.txt")
+ecolink <- readRDS('data/ecolink.RDS')
+Norms2010$p01 <- Norms2010$pp01*10
+Norms2010$p02 <- Norms2010$pp02*10
+Norms2010$p03 <- Norms2010$pp03*10
+Norms2010$p04 <- Norms2010$pp04*10
+Norms2010$p05 <- Norms2010$pp05*10
+Norms2010$p06 <- Norms2010$pp06*10
+Norms2010$p07 <- Norms2010$pp07*10
+Norms2010$p08 <- Norms2010$pp08*10
+Norms2010$p09 <- Norms2010$pp09*10
+Norms2010$p10 <- Norms2010$pp10*10
+Norms2010$p11 <- Norms2010$pp11*10
+Norms2010$p12 <- Norms2010$pp12*10
+Norms2010 <- merge(ecolink, Norms2010, by='Station_ID')
+Norms2010$Norm <- 2010
+Norms2010pre <-Norms2010[!is.na(Norms2010$t01)&!is.na(Norms2010$t07)&!is.na(Norms2010$tl01)&!is.na(Norms2010$tl07)&!is.na(Norms2010$p01)&!is.na(Norms2010$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+
+Biomeclimate$Station_ID <- ""
+Biomeclimate$Station_Name <- ""
+Biomeclimate$State <- ""
+Biomeclimate$Norm <- 1990
+Biomeclimatepre <-Biomeclimate[!is.na(Biomeclimate$t01)&!is.na(Biomeclimate$t07)&!is.na(Biomeclimate$tl01)&!is.na(Biomeclimate$tl07)&!is.na(Biomeclimate$p01)&!is.na(Biomeclimate$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+
+Biomeclimate <- rbind(Biomeclimatepre,Norms2010pre)
+
 Biomeclimate <- merge(biomesummary, Biomeclimate, by='BIOME')
 #generate Uniq ID
 Biomeclimate$ID <- seq.int(nrow(Biomeclimate))
+
 Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME", "biomname","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 
 
@@ -281,7 +308,7 @@ Biomeclimate$Surplus <- (Biomeclimate$s01+
                           Biomeclimate$s10+
                           Biomeclimate$s11+
                           Biomeclimate$s12)
-
+Biomeclimate <- subset(Biomeclimate, select= -c(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10,s11,s12,d01,d02,d03,d04,d05,d06,d07,d08,d09,d10,d11,d12,aet01,aet02,aet03,aet04,aet05,aet06,aet07,aet08,aet09,aet10,aet11,aet12))
 saveRDS(Biomeclimate, file='data/Biomeclimate.RDS')
 
 #_Biomeclimate <- readRDS(file='C:/workspace2/BiomeClimate/data/Biomeclimate.RDS')
