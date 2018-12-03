@@ -46,10 +46,88 @@ Biomeclimate <- rbind(Biomeclimatepre,Norms2010pre)
 Biomeclimate <- merge(biomesummary, Biomeclimate, by='BIOME')
 #generate Uniq ID
 Biomeclimate$ID <- seq.int(nrow(Biomeclimate))
+rm(ecolink, Norms2010, Norms2010pre, biomesummary, Biomeclimatepre)
+Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+N1990 <- Biomeclimate[Biomeclimate$Norm == 1990,]
+N2010 <- Biomeclimate[Biomeclimate$Norm == 2010,]
 
-Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME", "biomname","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+
+wwfregions1 <- aggregate(N1990[,c('ID')], by=list(N1990$ECO_ID,N1990$ECO_NAME), FUN='length')
+colnames(wwfregions1) <- c('ECO_ID', 'ECO_NAME', 'N1990')
+wwfregions2 <- aggregate(N2010[,c('ID')], by=list(N2010$ECO_ID,N2010$ECO_NAME), FUN='length')
+colnames(wwfregions2) <- c('ECO_ID', 'ECO_NAME', 'N2010')
+wwfregions<- merge(wwfregions2, wwfregions1[,c('ECO_ID', 'N1990')], by='ECO_ID', all.x = TRUE)
+
+wwfregions$cht01 <- 0
+wwfregions$cht02 <- 0
+wwfregions$cht03 <- 0
+wwfregions$cht04 <- 0
+wwfregions$cht05 <- 0
+wwfregions$cht06 <- 0
+wwfregions$cht07 <- 0
+wwfregions$cht08 <- 0
+wwfregions$cht09 <- 0
+wwfregions$cht10 <- 0
+wwfregions$cht11 <- 0
+wwfregions$cht12 <- 0
+wwfregions$chtl01 <- 0
+wwfregions$chtl02 <- 0
+wwfregions$chtl03 <- 0
+wwfregions$chtl04 <- 0
+wwfregions$chtl05 <- 0
+wwfregions$chtl06 <- 0
+wwfregions$chtl07 <- 0
+wwfregions$chtl08 <- 0
+wwfregions$chtl09 <- 0
+wwfregions$chtl10 <- 0
+wwfregions$chtl11 <- 0
+wwfregions$chtl12 <- 0
+wwfregions$chp01 <- 0
+wwfregions$chp02 <- 0
+wwfregions$chp03 <- 0
+wwfregions$chp04 <- 0
+wwfregions$chp05 <- 0
+wwfregions$chp06 <- 0
+wwfregions$chp07 <- 0
+wwfregions$chp08 <- 0
+wwfregions$chp09 <- 0
+wwfregions$chp10 <- 0
+wwfregions$chp11 <- 0
+wwfregions$chp12 <- 0
+
+for (i in 1:nrow(wwfregions)){ #create a matrix that shows difference between the 1990 and 2010 normals by ecoregion.
+  for (j in 1:24){
+    
+    selectbioclim <- Biomeclimate[Biomeclimate$ECO_ID %in% wwfregions[i,'ECO_ID'],    c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation",
+                                                                                        "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
+                                                                                        "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
+                                                                                        "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ]
+    
+    v1 <- paste(as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='t01')+j-1]),"~ Latitude + Longitude + Elevation + Norm" )
+    model1 = lm(v1, data=selectbioclim)      
+    wwfregions[i,which(colnames(wwfregions)=='cht01')+j-1] <- 
+      as.numeric(model1$coef[5])
+  }
+  for (j in 1:12){    
+    v2 <- paste0("log(", as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='p01')+j-1]),"+1) ~ Latitude + Longitude + Elevation + Norm" )
+    model2 = lm(v2, data=selectbioclim)      
+    wwfregions[i,which(colnames(wwfregions)=='chp01')+j-1] <- 
+      as.numeric(model1$coef[5])
+  }  
+  
+  for (j in 1:12){    
+    v3 <- paste0("log(", as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='t01')+j-1])," - ", 
+                   as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='tl01')+j-1]),"+1) ~ Latitude + Longitude + Elevation + Norm" )
+    model2 = lm(v3, data=selectbioclim)      
+    wwfregions[i,which(colnames(wwfregions)=='chtl01')+j-1] <- 
+      as.numeric(model1$coef[5])
+  }  
+  
+}
 
 
+
+#---- Begin summary
 Biomeclimate$b01 <- 0
 Biomeclimate$b02 <- 0
 Biomeclimate$b03 <- 0
