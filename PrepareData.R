@@ -96,36 +96,82 @@ wwfregions$chp11 <- 0
 wwfregions$chp12 <- 0
 
 for (i in 1:nrow(wwfregions)){ #create a matrix that shows difference between the 1990 and 2010 normals by ecoregion.
-  for (j in 1:24){
-    
-    selectbioclim <- Biomeclimate[Biomeclimate$ECO_ID %in% wwfregions[i,'ECO_ID'],    c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation",
-                                                                                        "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
-                                                                                        "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
-                                                                                        "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ]
-    
-    v1 <- paste(as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='t01')+j-1]),"~ Latitude + Longitude + Elevation + Norm" )
-    model1 = lm(v1, data=selectbioclim)      
+  
+  
+  selectbioclim <- Biomeclimate[Biomeclimate$ECO_ID %in% wwfregions[i,'ECO_ID'],    c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation",
+                                                                                      "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
+                                                                                      "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
+                                                                                      "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ]
+  selectbioclim$v1 <- 0
+  for (j in 1:12){
+    selectbioclim$v1 <- selectbioclim[,which(colnames(selectbioclim)=='t01')+j-1]
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)      
     wwfregions[i,which(colnames(wwfregions)=='cht01')+j-1] <- 
       as.numeric(model1$coef[5])
   }
-  for (j in 1:12){    
-    v2 <- paste0("log(", as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='p01')+j-1]),"+1) ~ Latitude + Longitude + Elevation + Norm" )
-    model2 = lm(v2, data=selectbioclim)      
+  for (j in 1:12){  
+    
+    selectbioclim$v1 <- log(selectbioclim[,which(colnames(selectbioclim)=='p01')+j-1] +1 )
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)      
     wwfregions[i,which(colnames(wwfregions)=='chp01')+j-1] <- 
       as.numeric(model1$coef[5])
   }  
   
   for (j in 1:12){    
-    v3 <- paste0("log(", as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='t01')+j-1])," - ", 
-                   as.name(colnames(selectbioclim)[which(colnames(selectbioclim)=='tl01')+j-1]),"+1) ~ Latitude + Longitude + Elevation + Norm" )
-    model2 = lm(v3, data=selectbioclim)      
+    selectbioclim$v1 <- log(selectbioclim[,which(colnames(selectbioclim)=='t01')+j-1] - selectbioclim[,which(colnames(selectbioclim)=='tl01')+j-1] + 1)
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)       
     wwfregions[i,which(colnames(wwfregions)=='chtl01')+j-1] <- 
       as.numeric(model1$coef[5])
   }  
   
 }
 
+bioclimatechange <- merge(Biomeclimate[Biomeclimate$Norm == 2010,], wwfregions, by=c('ECO_ID', 'ECO_NAME'))
 
+bioclimatechange$newt01 <- 0
+bioclimatechange$newt02 <- 0
+bioclimatechange$newt03 <- 0
+bioclimatechange$newt04 <- 0
+bioclimatechange$newt05 <- 0
+bioclimatechange$newt06 <- 0
+bioclimatechange$newt07 <- 0
+bioclimatechange$newt08 <- 0
+bioclimatechange$newt09 <- 0
+bioclimatechange$newt10 <- 0
+bioclimatechange$newt11 <- 0
+bioclimatechange$newt12 <- 0
+bioclimatechange$newtl01 <- 0
+bioclimatechange$newtl02 <- 0
+bioclimatechange$newtl03 <- 0
+bioclimatechange$newtl04 <- 0
+bioclimatechange$newtl05 <- 0
+bioclimatechange$newtl06 <- 0
+bioclimatechange$newtl07 <- 0
+bioclimatechange$newtl08 <- 0
+bioclimatechange$newtl09 <- 0
+bioclimatechange$newtl10 <- 0
+bioclimatechange$newtl11 <- 0
+bioclimatechange$newtl12 <- 0
+bioclimatechange$newp01 <- 0
+bioclimatechange$newp02 <- 0
+bioclimatechange$newp03 <- 0
+bioclimatechange$newp04 <- 0
+bioclimatechange$newp05 <- 0
+bioclimatechange$newp06 <- 0
+bioclimatechange$newp07 <- 0
+bioclimatechange$newp08 <- 0
+bioclimatechange$newp09 <- 0
+bioclimatechange$newp10 <- 0
+bioclimatechange$newp11 <- 0
+bioclimatechange$newp12 <- 0
+
+for (j in 1:12){  
+  bioclimatechange[,which(colnames(bioclimatechange)=='newt01')+j-1] <- bioclimatechange[,which(colnames(bioclimatechange)=='t01')+j-1] - bioclimatechange[,which(colnames(bioclimatechange)=='cht01')+j-1]*20
+
+  bioclimatechange[,which(colnames(bioclimatechange)=='newtl01')+j-1] <- bioclimatechange[,which(colnames(bioclimatechange)=='newt01')+j-1] - pmax(exp(log(bioclimatechange[,which(colnames(bioclimatechange)=='t01')+j-1] - bioclimatechange[,which(colnames(bioclimatechange)=='tl01')+j-1] +1) - bioclimatechange[,which(colnames(bioclimatechange)=='chtl01')+j-1]*20) -1, 0) #predict low, ensure that low is never higher than mean.
+
+  bioclimatechange[,which(colnames(bioclimatechange)=='newp01')+j-1] <- pmax(exp(log(bioclimatechange[,which(colnames(bioclimatechange)=='p01')+j-1] + 1) - bioclimatechange[,which(colnames(bioclimatechange)=='chp01')+j-1]*20) - 1, 0) #predict precip, ensure that precip is never negative.
+}
 
 #---- Begin summary
 Biomeclimate$b01 <- 0
