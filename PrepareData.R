@@ -18,7 +18,13 @@ Biomeclimate <- read.delim("data/BiomeClimate3.txt")
 DaysMonth <- read.delim("data/DaysMonth.txt")
 biomesummary<-read.delim("data/biomesummary.txt")
 Norms2010<-read.delim("data/Norms2010.txt")
+USH_station<-read.delim("data/Ushcn-stations.txt")
 ecolink <- readRDS('data/ecolink.RDS')
+USH_stationjoin<-read.csv("data/ushjoin.csv")
+USH_station <- USH_station[,c('lat', 'lon', 'elev', 'state', 'station_Name', 'StationID')]
+USH_station <- merge(USH_station, USH_stationjoin, by.x = 'StationID', by.y = 'StationID')
+
+
 Norms2010$p01 <- Norms2010$pp01*10
 Norms2010$p02 <- Norms2010$pp02*10
 Norms2010$p03 <- Norms2010$pp03*10
@@ -172,6 +178,11 @@ for (j in 1:12){
 
   bioclimatechange[,which(colnames(bioclimatechange)=='newp01')+j-1] <- pmax(exp(log(bioclimatechange[,which(colnames(bioclimatechange)=='p01')+j-1] + 1) - bioclimatechange[,which(colnames(bioclimatechange)=='chp01')+j-1]*20) - 1, 0) #predict precip, ensure that precip is never negative.
 }
+
+
+
+
+
 
 #---- Begin summary
 Biomeclimate$b01 <- 0
