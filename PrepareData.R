@@ -14,17 +14,108 @@ library(car)
 library(ggplot2)
 #calculate percentiles
 library(plyr)
-Biomeclimate <- read.delim("data/BiomeClimate3.txt")
-DaysMonth <- read.delim("data/DaysMonth.txt")
-biomesummary<-read.delim("data/biomesummary.txt")
-Norms2010<-read.delim("data/Norms2010.txt")
-USH_station<-read.delim("data/Ushcn-stations.txt")
+#Biomeclimate <- read.delim("data/BiomeClimate3.txt")
+#saveRDS(Biomeclimate,"data/BiomeClimate3.RDS")
+Biomeclimate <- readRDS("data/BiomeClimate3.RDS")
+#DaysMonth <- read.delim("data/DaysMonth.txt")
+#saveRDS(DaysMonth,"data/DaysMonth.RDS")
+DaysMonth <- readRDS("data/DaysMonth.RDS")
+#biomesummary<-read.delim("data/biomesummary.txt")
+#saveRDS(biomesummary,"data/biomesummary.RDS")
+biomesummary <- readRDS("data/biomesummary.RDS")
+#Norms2010<-read.delim("data/Norms2010.txt")
+#saveRDS(Norms2010,"data/Norms2010.RDS")
+Norms2010 <- readRDS("data/Norms2010.RDS")
+#USH_station<-read.delim("data/Ushcn-stations.txt")
+#saveRDS(USH_station,"data/USH_station.RDS")
+USH_station <- readRDS("data/USH_station.RDS")
 ecolink <- readRDS('data/ecolink.RDS')
-USH_stationjoin<-read.csv("data/ushjoin.csv")
+#USH_stationjoin<-read.csv("data/ushjoin.csv")
+#saveRDS(USH_stationjoin,"data/USH_stationjoin.RDS")
+USH_stationjoin <- readRDS("data/USH_stationjoin.RDS")
 USH_station <- USH_station[,c('lat', 'lon', 'elev', 'state', 'station_Name', 'StationID')]
 USH_station <- merge(USH_station, USH_stationjoin, by.x = 'StationID', by.y = 'StationID')
+#globhistclim <- read.delim("data/globhistclim.txt", quote = "")
+#saveRDS(globhistclim,"data/globhistclim.RDS")
+globhistclim <- readRDS("data/globhistclim.RDS")
+#globhistoricecoregions <- read.csv("data/globhistoricecoregions.txt")
+#saveRDS(globhistoricecoregions,"data/globhistoricecoregions.RDS")
+globhistoricecoregions <- readRDS("data/globhistoricecoregions.RDS")
+globstations <- merge(globhistclim, globhistoricecoregions[,c('ID','ECO_ID', 'ECO_NAME' )], by='ID')
+#adjprecipitation <- read.delim("data/adjprecipitation.txt", quote = "", na.strings = -9999)
+#saveRDS(adjprecipitation,"data/adjprecipitation.RDS")
+adjprecipitation <- readRDS("data/adjprecipitation.RDS")
+#rawprecipitation <- read.delim("data/rawprecipitation.txt", quote = "", na.strings = -9999)
+#saveRDS(rawprecipitation,"data/rawprecipitation.RDS")
+rawprecipitation <- readRDS("data/rawprecipitation.RDS")
+#GHC_ELEMENTS <- read.delim("data/GHC_ELEMENTS.txt", quote = "", na.strings = -9999)
+#saveRDS(GHC_ELEMENTS,"data/GHC_ELEMENTS.RDS")
+GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS")
+ghc_prec <- rbind(adjprecipitation, rawprecipitation)
+ghc_prec <- unique(ghc_prec[,c(1,3:15)])
+for (j in 1:12){
+  ghc_prec[,j+2] <- ifelse(ghc_prec[,j+2] == -8888, 0.2,ghc_prec[,j+2]/10)
+}
 
+ghc_tmean <- unique(GHC_ELEMENTS[GHC_ELEMENTS$ELEMENT %in% 'TAVG' & 
+                                   GHC_ELEMENTS$YEAR >=1961 &
+                                   GHC_ELEMENTS$YEAR <=2010,
+                                 c('ID', 'YEAR', 'V01', 'V02', 'V03', 'V04', 'V05', 'V06', 'V07', 'V08', 'V09', 'V10', 'V11', 'V12')])
+colnames(ghc_tmean) <- c('ID', 'YEAR', 't01', 't02', 't03', 't04', 't05', 't06', 't07', 't08', 't09', 't10', 't11', 't12')
+ghc_tlow <- unique(GHC_ELEMENTS[GHC_ELEMENTS$ELEMENT %in% 'TMIN' & 
+                                  GHC_ELEMENTS$YEAR >=1961 &
+                                  GHC_ELEMENTS$YEAR <=2010,
+                                c('ID', 'YEAR', 'V01', 'V02', 'V03', 'V04', 'V05', 'V06', 'V07', 'V08', 'V09', 'V10', 'V11', 'V12')])
+colnames(ghc_tlow) <- c('ID', 'YEAR', 'tl01', 'tl02', 'tl03', 'tl04', 'tl05', 'tl06', 'tl07', 'tl08', 'tl09', 'tl10', 'tl11', 'tl12')
 
+ghc_thigh <- unique(GHC_ELEMENTS[GHC_ELEMENTS$ELEMENT %in% 'TMAX' & 
+                                  GHC_ELEMENTS$YEAR >=1961 &
+                                  GHC_ELEMENTS$YEAR <=2010,
+                                c('ID', 'YEAR', 'V01', 'V02', 'V03', 'V04', 'V05', 'V06', 'V07', 'V08', 'V09', 'V10', 'V11', 'V12')])
+colnames(ghc_thigh) <- c('ID', 'YEAR', 'th01', 'th02', 'th03', 'th04', 'th05', 'th06', 'th07', 'th08', 'th09', 'th10', 'th11', 'th12')
+ghc_t <- merge(ghc_tmean,ghc_tlow, by=c('ID','YEAR'), all.x=TRUE, all.y=TRUE)
+ghc_t <- merge(ghc_t,ghc_thigh, by=c('ID','YEAR'), all.x=TRUE, all.y=TRUE)
+ghc_t[,3:38] <- ghc_t[,3:38] / 100
+ghc <- merge(ghc_t,ghc_prec, by.x=c('ID','YEAR'),by.y=c('ID','year'))
+rm(ghc_thigh,ghc_tlow,ghc_tmean )
+ghc$check <- (ghc$th01 + ghc$tl01 + ghc$th07 + ghc$th07 + ghc$p01 + ghc$p07)*0+1
+ghc1990 <- ghc[ghc$YEAR >= 1961  & ghc$YEAR <= 1990,  ]
+ghc1990checkyears <- aggregate(ghc1990[,'check'], by=list(ghc1990$ID), FUN= 'sum', na.rm=TRUE)
+colnames(ghc1990checkyears) <- c('ID', 'ct1990')
+ghc2010 <- ghc[ghc$YEAR >= 1981  & ghc$YEAR <= 2010,  ]
+ghc2010checkyears <- aggregate(ghc2010[,'check'], by=list(ghc2010$ID), FUN= 'sum', na.rm=TRUE)
+colnames(ghc2010checkyears) <- c('ID', 'ct2010')
+ghccheckyears <- merge(ghc2010checkyears, ghc1990checkyears, by='ID')
+rm(ghc2010checkyears, ghc1990checkyears)
+selectID <- ghccheckyears[ghccheckyears$ct2010 >=20 & ghccheckyears$ct1990 >=20,'ID']
+ghc <- ghc[ghc$ID %in% selectID,]
+for (j in 1:12){
+ghc[,which(colnames(ghc)=='t01')+j-1]<- ifelse(is.na(ghc[,which(colnames(ghc)=='t01')+j-1]),
+(ghc[,which(colnames(ghc)=='tl01')+j-1] + ghc[,which(colnames(ghc)=='th01')+j-1])/2,
+ghc[,which(colnames(ghc)=='t01')+j-1])
+}
+ghcpre <-  ghc[ghc$YEAR >= 1961  & ghc$YEAR <= 1990,]
+ghc1990norm <- aggregate(ghcpre[,c(
+  't01', 't02', 't03', 't04', 't05', 't06', 't07', 't08', 't09', 't10', 't11', 't12',
+  'p01', 'p02', 'p03', 'p04', 'p05', 'p06', 'p07', 'p08', 'p09', 'p10', 'p11', 'p12',
+  'tl01', 'tl02', 'tl03', 'tl04', 'tl05', 'tl06', 'tl07', 'tl08', 'tl09', 'tl10', 'tl11', 'tl12')],
+  by=list(ghcpre$ID), FUN = 'mean', na.rm=TRUE
+)
+ghcpre <-  ghc[ghc$YEAR >= 1981  & ghc$YEAR <= 2010,]
+ghc2010norm <- aggregate(ghcpre[,c(
+  't01', 't02', 't03', 't04', 't05', 't06', 't07', 't08', 't09', 't10', 't11', 't12',
+  'p01', 'p02', 'p03', 'p04', 'p05', 'p06', 'p07', 'p08', 'p09', 'p10', 'p11', 'p12',
+  'tl01', 'tl02', 'tl03', 'tl04', 'tl05', 'tl06', 'tl07', 'tl08', 'tl09', 'tl10', 'tl11', 'tl12')],
+  by=list(ghcpre$ID), FUN = 'mean', na.rm=TRUE
+)
+ghc2010norm$norm <- 2010
+ghc1990norm$norm <- 1990
+ghc2010norm <- rbind(ghc2010norm, ghc1990norm)
+colnames(ghc2010norm)[1] <- 'ID'
+globstations <- merge(globstations,ghc2010norm, by='ID' )
+#selectglob <- globstations[globstations$ECO_ID %in% c('70701', '50613', '70102', '51116'),]
+#norms----  
+  
 Norms2010$p01 <- Norms2010$pp01*10
 Norms2010$p02 <- Norms2010$pp02*10
 Norms2010$p03 <- Norms2010$pp03*10
