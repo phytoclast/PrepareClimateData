@@ -30,6 +30,8 @@ globstations <- merge(globhistclim, ecolink2[,c('ID','ECO_ID', 'ECO_NAME', 'BIOM
 adjprecipitation <- readRDS("data/adjprecipitation.RDS")
 rawprecipitation <- readRDS("data/rawprecipitation.RDS")
 GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS")
+clmchg <- readRDS("data/clmchg.RDS")
+#clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
 ghc_prec <- rbind(adjprecipitation, rawprecipitation)
 ghc_prec <- unique(ghc_prec[,c(1,3:15)])
 for (j in 1:12){
