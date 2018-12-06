@@ -14,42 +14,21 @@ library(car)
 library(ggplot2)
 #calculate percentiles
 library(plyr)
-#Biomeclimate <- read.delim("data/BiomeClimate3.txt")
-#saveRDS(Biomeclimate,"data/BiomeClimate3.RDS")
+
 Biomeclimate <- readRDS("data/BiomeClimate3.RDS")
-#DaysMonth <- read.delim("data/DaysMonth.txt")
-#saveRDS(DaysMonth,"data/DaysMonth.RDS")
 DaysMonth <- readRDS("data/DaysMonth.RDS")
-#biomesummary<-read.delim("data/biomesummary.txt")
-#saveRDS(biomesummary,"data/biomesummary.RDS")
 biomesummary <- readRDS("data/biomesummary.RDS")
-#Norms2010<-read.delim("data/Norms2010.txt")
-#saveRDS(Norms2010,"data/Norms2010.RDS")
 Norms2010 <- readRDS("data/Norms2010.RDS")
-#USH_station<-read.delim("data/Ushcn-stations.txt")
-#saveRDS(USH_station,"data/USH_station.RDS")
 USH_station <- readRDS("data/USH_station.RDS")
 ecolink <- readRDS('data/ecolink.RDS')
-#USH_stationjoin<-read.csv("data/ushjoin.csv")
-#saveRDS(USH_stationjoin,"data/USH_stationjoin.RDS")
 USH_stationjoin <- readRDS("data/USH_stationjoin.RDS")
 USH_station <- USH_station[,c('lat', 'lon', 'elev', 'state', 'station_Name', 'StationID')]
 USH_station <- merge(USH_station, USH_stationjoin, by.x = 'StationID', by.y = 'StationID')
-#globhistclim <- read.delim("data/globhistclim.txt", quote = "")
-#saveRDS(globhistclim,"data/globhistclim.RDS")
 globhistclim <- readRDS("data/globhistclim.RDS")
-#globhistoricecoregions <- read.csv("data/globhistoricecoregions.txt")
-#saveRDS(globhistoricecoregions,"data/globhistoricecoregions.RDS")
-globhistoricecoregions <- readRDS("data/globhistoricecoregions.RDS")
-globstations <- merge(globhistclim, globhistoricecoregions[,c('ID','ECO_ID', 'ECO_NAME' )], by='ID')
-#adjprecipitation <- read.delim("data/adjprecipitation.txt", quote = "", na.strings = -9999)
-#saveRDS(adjprecipitation,"data/adjprecipitation.RDS")
+ecolink2 <- readRDS("data/ecolink2.RDS")
+globstations <- merge(globhistclim, ecolink2[,c('ID','ECO_ID', 'ECO_NAME', 'BIOME' )], by='ID')
 adjprecipitation <- readRDS("data/adjprecipitation.RDS")
-#rawprecipitation <- read.delim("data/rawprecipitation.txt", quote = "", na.strings = -9999)
-#saveRDS(rawprecipitation,"data/rawprecipitation.RDS")
 rawprecipitation <- readRDS("data/rawprecipitation.RDS")
-#GHC_ELEMENTS <- read.delim("data/GHC_ELEMENTS.txt", quote = "", na.strings = -9999)
-#saveRDS(GHC_ELEMENTS,"data/GHC_ELEMENTS.RDS")
 GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS")
 ghc_prec <- rbind(adjprecipitation, rawprecipitation)
 ghc_prec <- unique(ghc_prec[,c(1,3:15)])
@@ -113,7 +92,28 @@ ghc1990norm$norm <- 1990
 ghc2010norm <- rbind(ghc2010norm, ghc1990norm)
 colnames(ghc2010norm)[1] <- 'ID'
 globstations <- merge(globstations,ghc2010norm, by='ID' )
-#selectglob <- globstations[globstations$ECO_ID %in% c('70701', '50613', '70102', '51116'),]
+rm(GHC_ELEMENTS, adjprecipitation, rawprecipitation, globhistclim, globhistoricecoregions, ghc, ghcpre, ghc_prec, ghc_thigh, ghc_t,
+   ghc_tlow, ghc1990norm, ghc2010norm, ghc1990, ghc2010, ghc2010checkyears, ghc1990checkyears, ghccheckyears)
+
+
+colnames(globstations)[which(colnames(globstations)=='ID')] <- "Station_ID"
+colnames(globstations)[which(colnames(globstations)=='stnname')] <- "Station_Name"
+colnames(globstations)[which(colnames(globstations)=='type')] <- "State"
+colnames(globstations)[which(colnames(globstations)=='latitude')] <- "Latitude"
+colnames(globstations)[which(colnames(globstations)=='longitude')] <- "Longitude"
+colnames(globstations)[which(colnames(globstations)=='elev')] <- "Elevation"
+
+Biomeclimatehigh <- aggregate(Biomeclimate[,'Elevation'], by=list(Biomeclimate$ECO_ID, Biomeclimate$ECO_NAME), FUN='max', na.rm=TRUE)
+colnames(Biomeclimatehigh) <- c('ECO_ID', 'ECO_NAME', 'highbio')
+Norms2010high <- merge(Biomeclimatehigh, Norms2010, by=c('ECO_ID', 'ECO_NAME'))
+Norms2010high <- Norms2010high[(Norms2010high$Elevation - Norms2010high$highbio)>100,]
+globstationshigh <- aggregate(globstations[,'Elevation'], by=list(globstations$ECO_ID, globstations$ECO_NAME), FUN='max', na.rm=TRUE)
+colnames(globstationshigh) <- c('ECO_ID', 'ECO_NAME', 'highglob')
+Norms2010high <- aggregate(Norms2010[,'Elevation'], by=list(Norms2010$ECO_ID, Norms2010$ECO_NAME), FUN='max', na.rm=TRUE)
+colnames(Norms2010high) <- c('ECO_ID', 'ECO_NAME', 'highnorm')
+Biomeclimatehigh <- merge(Biomeclimatehigh, globstationshigh, by=c('ECO_ID', 'ECO_NAME'), all.x = TRUE)
+Biomeclimatehigh <- merge(Biomeclimatehigh, Norms2010high, by=c('ECO_ID', 'ECO_NAME'), all.x = TRUE)
+Biomeclimatehigh2 <- Biomeclimatehigh[(Biomeclimatehigh$highglob - Biomeclimatehigh$highbio)> 50  & !is.na(Biomeclimatehigh$highglob), ]
 #norms----  
   
 Norms2010$p01 <- Norms2010$pp01*10
