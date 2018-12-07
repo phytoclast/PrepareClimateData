@@ -31,6 +31,7 @@ adjprecipitation <- readRDS("data/adjprecipitation.RDS") #Global historic climat
 rawprecipitation <- readRDS("data/rawprecipitation.RDS") #Global historic climate
 GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS") #Global historic climate
 clmchg <- readRDS("data/clmchg.RDS") #random point data sampled from worldclim.org grids of climate models 
+clmchgagg <- readRDS("data/clmchgagg.RDS") #random point data sampled from worldclim.org grids of climate models 
 #clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
 
 #Global historic climate---- 
@@ -287,6 +288,19 @@ bioclimatechange <- bioclimatechange[bioclimatechange$N2010 >2 |bioclimatechange
 bioclimatechange<- bioclimatechange[,colnames(Biomeclimate)]
 Biomeclimate <- rbind(Biomeclimate, bioclimatechange)
 Biomeclimate <- Biomeclimate[Biomeclimate$Source %in% c('WorldClim.org', '2010 Normals')& Biomeclimate$Norm == 1990, ]
+#work in the climate change ----
+rm(bioclimatechange, ecolink2, globstations, model1, N1990, N2010, NGHCN, USH_station, USH_stationjoin, wwfregions, wwfregions3, wwfregions2, wwfregions1)
+ 
+Biomeclimate$chglink <- paste(round(Biomeclimate$Latitude,1), round(Biomeclimate$Longitude,1))
+clmchg$chglink <- paste(round(clmchg$Latitude,1), round(clmchg$Longitude,1))
+#clmchgagg <- aggregate(clmchg[,3:110], by=list(clmchg$chglink), FUN='mean', na.rm=TRUE)
+#saveRDS(clmchgagg, 'data/clmchgagg.RDS')
+#colnames(clmchgagg)[1] <- 'chglink'
+#climchangemerge <- merge(Biomeclimate, clmchgagg, by=c('chglink'), all.x = TRUE)
+
+
+selec1 <- climchangemerge[is.na(climchangemerge$cc45pr508),]
+
 #---- Begin summary
 Biomeclimate$b01 <- 0
 Biomeclimate$b02 <- 0
