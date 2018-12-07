@@ -15,25 +15,28 @@ library(ggplot2)
 #calculate percentiles
 library(plyr)
 
-Biomeclimate <- readRDS("data/BiomeClimate3.RDS")
+Biomeclimate <- readRDS("data/BiomeClimate3.RDS") #random point data from worldclim.org grids
 DaysMonth <- readRDS("data/DaysMonth.RDS")
-biomesummary <- readRDS("data/biomesummary.RDS")
-Norms2010 <- readRDS("data/Norms2010.RDS")
-USH_station <- readRDS("data/USH_station.RDS")
-ecolink <- readRDS('data/ecolink.RDS')
-USH_stationjoin <- readRDS("data/USH_stationjoin.RDS")
+biomesummary <- readRDS("data/biomesummary.RDS") #link between biome number and name
+Norms2010 <- readRDS("data/Norms2010.RDS") #US Climate Norms 1981-2010
+USH_station <- readRDS("data/USH_station.RDS") #US historic climate
+ecolink <- readRDS('data/ecolink.RDS') #US historic climate
+USH_stationjoin <- readRDS("data/USH_stationjoin.RDS") #WWF Ecoregion link to US historic climate
 USH_station <- USH_station[,c('lat', 'lon', 'elev', 'state', 'station_Name', 'StationID')]
 USH_station <- merge(USH_station, USH_stationjoin, by.x = 'StationID', by.y = 'StationID')
-globhistclim <- readRDS("data/globhistclim.RDS")
-ecolink2 <- readRDS("data/ecolink2.RDS")
+globhistclim <- readRDS("data/globhistclim.RDS")#Global historic climate
+ecolink2 <- readRDS("data/ecolink2.RDS") #WWF Ecoregion link to Global historic climate
 globstations <- merge(globhistclim, ecolink2[,c('ID','ECO_ID', 'ECO_NAME', 'BIOME' )], by='ID')
-adjprecipitation <- readRDS("data/adjprecipitation.RDS")
-rawprecipitation <- readRDS("data/rawprecipitation.RDS")
-GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS")
-clmchg <- readRDS("data/clmchg.RDS")
+adjprecipitation <- readRDS("data/adjprecipitation.RDS") #Global historic climate
+rawprecipitation <- readRDS("data/rawprecipitation.RDS") #Global historic climate
+GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS") #Global historic climate
+clmchg <- readRDS("data/clmchg.RDS") #random point data sampled from worldclim.org grids of climate models 
 #clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
+
+#Global historic climate---- 
 ghc_prec <- rbind(adjprecipitation, rawprecipitation)
 ghc_prec <- unique(ghc_prec[,c(1,3:15)])
+
 for (j in 1:12){
   ghc_prec[,j+2] <- ifelse(ghc_prec[,j+2] == -8888, 0.2,ghc_prec[,j+2]/10)
 }
@@ -105,8 +108,8 @@ colnames(globstations)[which(colnames(globstations)=='latitude')] <- "Latitude"
 colnames(globstations)[which(colnames(globstations)=='longitude')] <- "Longitude"
 colnames(globstations)[which(colnames(globstations)=='elev')] <- "Elevation"
 
-colnames(globstations)
-#norms----  
+
+#US Normals 1981-2010 ----  
   
 Norms2010$p01 <- Norms2010$pp01*10
 Norms2010$p02 <- Norms2010$pp02*10
@@ -120,7 +123,8 @@ Norms2010$p09 <- Norms2010$pp09*10
 Norms2010$p10 <- Norms2010$pp10*10
 Norms2010$p11 <- Norms2010$pp11*10
 Norms2010$p12 <- Norms2010$pp12*10
-Norms2010 <- merge(ecolink, Norms2010, by='Station_ID')
+Norms2010 <- subset(Norms2010, select= -c(Latitude, Longitude)) #found these fields truncated by an export, will replace below
+Norms2010 <- merge(ecolink[,c("Station_ID","Latitude","Longitude","ECO_NAME","REALM","BIOME","ECO_ID" )], Norms2010, by='Station_ID')
 Norms2010$Norm <- 2010
 Norms2010$Source <- "2010 Normals"
 Norms2010pre <-Norms2010[!is.na(Norms2010$t01)&!is.na(Norms2010$t07)&!is.na(Norms2010$tl01)&!is.na(Norms2010$tl07)&!is.na(Norms2010$p01)&!is.na(Norms2010$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Source","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
@@ -143,14 +147,18 @@ rm(ecolink, Norms2010, Norms2010pre, biomesummary, Biomeclimatepre, globstations
 Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm", "Source","wts", "Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 N1990 <- Biomeclimate[Biomeclimate$Norm == 1990,]
 N2010 <- Biomeclimate[Biomeclimate$Norm == 2010,]
-
+NGHCN <- Biomeclimate[Biomeclimate$Source == 'GHCN',]
 
 wwfregions1 <- aggregate(N1990[,c('ID')], by=list(N1990$ECO_ID,N1990$ECO_NAME), FUN='length')
 colnames(wwfregions1) <- c('ECO_ID', 'ECO_NAME', 'N1990')
 wwfregions2 <- aggregate(N2010[,c('ID')], by=list(N2010$ECO_ID,N2010$ECO_NAME), FUN='length')
 colnames(wwfregions2) <- c('ECO_ID', 'ECO_NAME', 'N2010')
+wwfregions3 <- aggregate(NGHCN[,c('ID')], by=list(NGHCN$ECO_ID,NGHCN$ECO_NAME), FUN='length')
+colnames(wwfregions3) <- c('ECO_ID', 'ECO_NAME', 'NGHCN')
 wwfregions<- merge(wwfregions2, wwfregions1[,c('ECO_ID', 'N1990')], by='ECO_ID', all.x = TRUE)
-
+wwfregions<- merge(wwfregions, wwfregions3[,c('ECO_ID', 'NGHCN')], by='ECO_ID', all.x = TRUE)
+wwfregions$NGHCN <- ifelse(is.na(wwfregions$NGHCN),0,wwfregions$NGHCN)
+selectb <- Biomeclimate[Biomeclimate$ECO_ID %in% c('70701', '70106', '70701', '70702', '70202'),]
 wwfregions$cht01 <- 0
 wwfregions$cht02 <- 0
 wwfregions$cht03 <- 0
@@ -274,10 +282,11 @@ for (j in 1:12){
   
   bioclimatechange[,which(colnames(bioclimatechange)=='p01')+j-1] <-   bioclimatechange[,which(colnames(bioclimatechange)=='newp01')+j-1]
 }
-bioclimatechange$Norm<- 1990
-#Need to identify bad extrapolations...
+bioclimatechange$Norm<- 1990  
+bioclimatechange <- bioclimatechange[bioclimatechange$N2010 >2 |bioclimatechange$NGHCN > 0, ]#Need to identify bad extrapolations... 
 bioclimatechange<- bioclimatechange[,colnames(Biomeclimate)]
 Biomeclimate <- rbind(Biomeclimate, bioclimatechange)
+Biomeclimate <- Biomeclimate[Biomeclimate$Source %in% c('WorldClim.org', '2010 Normals')& Biomeclimate$Norm == 1990, ]
 #---- Begin summary
 Biomeclimate$b01 <- 0
 Biomeclimate$b02 <- 0
