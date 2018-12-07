@@ -89,33 +89,23 @@ ghc2010norm <- aggregate(ghcpre[,c(
   'tl01', 'tl02', 'tl03', 'tl04', 'tl05', 'tl06', 'tl07', 'tl08', 'tl09', 'tl10', 'tl11', 'tl12')],
   by=list(ghcpre$ID), FUN = 'mean', na.rm=TRUE
 )
-ghc2010norm$norm <- 2010
-ghc1990norm$norm <- 1990
+ghc2010norm$Norm <- 2010
+ghc1990norm$Norm <- 1990
 ghc2010norm <- rbind(ghc2010norm, ghc1990norm)
 colnames(ghc2010norm)[1] <- 'ID'
 globstations <- merge(globstations,ghc2010norm, by='ID' )
 rm(GHC_ELEMENTS, adjprecipitation, rawprecipitation, globhistclim, globhistoricecoregions, ghc, ghcpre, ghc_prec, ghc_thigh, ghc_t,
    ghc_tlow, ghc1990norm, ghc2010norm, ghc1990, ghc2010, ghc2010checkyears, ghc1990checkyears, ghccheckyears)
 
-
+globstations$Source <- "GHCN"
+globstations$State <- ""
 colnames(globstations)[which(colnames(globstations)=='ID')] <- "Station_ID"
 colnames(globstations)[which(colnames(globstations)=='stnname')] <- "Station_Name"
-colnames(globstations)[which(colnames(globstations)=='type')] <- "State"
 colnames(globstations)[which(colnames(globstations)=='latitude')] <- "Latitude"
 colnames(globstations)[which(colnames(globstations)=='longitude')] <- "Longitude"
 colnames(globstations)[which(colnames(globstations)=='elev')] <- "Elevation"
 
-Biomeclimatehigh <- aggregate(Biomeclimate[,'Elevation'], by=list(Biomeclimate$ECO_ID, Biomeclimate$ECO_NAME), FUN='max', na.rm=TRUE)
-colnames(Biomeclimatehigh) <- c('ECO_ID', 'ECO_NAME', 'highbio')
-Norms2010high <- merge(Biomeclimatehigh, Norms2010, by=c('ECO_ID', 'ECO_NAME'))
-Norms2010high <- Norms2010high[(Norms2010high$Elevation - Norms2010high$highbio)>100,]
-globstationshigh <- aggregate(globstations[,'Elevation'], by=list(globstations$ECO_ID, globstations$ECO_NAME), FUN='max', na.rm=TRUE)
-colnames(globstationshigh) <- c('ECO_ID', 'ECO_NAME', 'highglob')
-Norms2010high <- aggregate(Norms2010[,'Elevation'], by=list(Norms2010$ECO_ID, Norms2010$ECO_NAME), FUN='max', na.rm=TRUE)
-colnames(Norms2010high) <- c('ECO_ID', 'ECO_NAME', 'highnorm')
-Biomeclimatehigh <- merge(Biomeclimatehigh, globstationshigh, by=c('ECO_ID', 'ECO_NAME'), all.x = TRUE)
-Biomeclimatehigh <- merge(Biomeclimatehigh, Norms2010high, by=c('ECO_ID', 'ECO_NAME'), all.x = TRUE)
-Biomeclimatehigh2 <- Biomeclimatehigh[(Biomeclimatehigh$highglob - Biomeclimatehigh$highbio)> 50  & !is.na(Biomeclimatehigh$highglob), ]
+colnames(globstations)
 #norms----  
   
 Norms2010$p01 <- Norms2010$pp01*10
@@ -132,21 +122,25 @@ Norms2010$p11 <- Norms2010$pp11*10
 Norms2010$p12 <- Norms2010$pp12*10
 Norms2010 <- merge(ecolink, Norms2010, by='Station_ID')
 Norms2010$Norm <- 2010
-Norms2010pre <-Norms2010[!is.na(Norms2010$t01)&!is.na(Norms2010$t07)&!is.na(Norms2010$tl01)&!is.na(Norms2010$tl07)&!is.na(Norms2010$p01)&!is.na(Norms2010$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+Norms2010$Source <- "2010 Normals"
+Norms2010pre <-Norms2010[!is.na(Norms2010$t01)&!is.na(Norms2010$t07)&!is.na(Norms2010$tl01)&!is.na(Norms2010$tl07)&!is.na(Norms2010$p01)&!is.na(Norms2010$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Source","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 
 Biomeclimate$Station_ID <- ""
 Biomeclimate$Station_Name <- ""
 Biomeclimate$State <- ""
 Biomeclimate$Norm <- 1990
-Biomeclimatepre <-Biomeclimate[!is.na(Biomeclimate$t01)&!is.na(Biomeclimate$t07)&!is.na(Biomeclimate$tl01)&!is.na(Biomeclimate$tl07)&!is.na(Biomeclimate$p01)&!is.na(Biomeclimate$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+Biomeclimate$Source <- "WorldClim.org"
+Biomeclimatepre <-Biomeclimate[!is.na(Biomeclimate$t01)&!is.na(Biomeclimate$t07)&!is.na(Biomeclimate$tl01)&!is.na(Biomeclimate$tl07)&!is.na(Biomeclimate$p01)&!is.na(Biomeclimate$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Source","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 
 Biomeclimate <- rbind(Biomeclimatepre,Norms2010pre)
-
+globstationspre <-globstations[!is.na(globstations$t01)&!is.na(globstations$t07)&!is.na(globstations$tl01)&!is.na(globstations$tl07)&!is.na(globstations$p01)&!is.na(globstations$p07),c("ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Source","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+Biomeclimate <- rbind(Biomeclimate,globstationspre)
 Biomeclimate <- merge(biomesummary, Biomeclimate, by='BIOME')
+Biomeclimate$wts<- ifelse(Biomeclimate$Source %in% 'GHCN', 100,1)
 #generate Uniq ID
 Biomeclimate$ID <- seq.int(nrow(Biomeclimate))
-rm(ecolink, Norms2010, Norms2010pre, biomesummary, Biomeclimatepre)
-Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+rm(ecolink, Norms2010, Norms2010pre, biomesummary, Biomeclimatepre, globstationspre)
+Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm", "Source","wts", "Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 N1990 <- Biomeclimate[Biomeclimate$Norm == 1990,]
 N2010 <- Biomeclimate[Biomeclimate$Norm == 2010,]
 
@@ -197,28 +191,28 @@ wwfregions$chp12 <- 0
 for (i in 1:nrow(wwfregions)){ #create a matrix that shows difference between the 1990 and 2010 normals by ecoregion.
   
   
-  selectbioclim <- Biomeclimate[Biomeclimate$ECO_ID %in% wwfregions[i,'ECO_ID'],    c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","Latitude","Longitude","Elevation",
+  selectbioclim <- Biomeclimate[Biomeclimate$ECO_ID %in% wwfregions[i,'ECO_ID'],    c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm","wts","Latitude","Longitude","Elevation",
                                                                                       "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
                                                                                       "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
                                                                                       "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ]
   selectbioclim$v1 <- 0
   for (j in 1:12){
     selectbioclim$v1 <- selectbioclim[,which(colnames(selectbioclim)=='t01')+j-1]
-    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)      
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim, weights = selectbioclim$wts)      
     wwfregions[i,which(colnames(wwfregions)=='cht01')+j-1] <- 
       as.numeric(model1$coef[5])
   }
   for (j in 1:12){  
     
     selectbioclim$v1 <- log(selectbioclim[,which(colnames(selectbioclim)=='p01')+j-1] +1 )
-    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)      
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim, weights = selectbioclim$wts)      
     wwfregions[i,which(colnames(wwfregions)=='chp01')+j-1] <- 
       as.numeric(model1$coef[5])
   }  
   
   for (j in 1:12){    
     selectbioclim$v1 <- log(selectbioclim[,which(colnames(selectbioclim)=='t01')+j-1] - selectbioclim[,which(colnames(selectbioclim)=='tl01')+j-1] + 1)
-    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim)       
+    model1 = lm(v1 ~ Latitude + Longitude + Elevation + Norm, data=selectbioclim, weights = selectbioclim$wts)       
     wwfregions[i,which(colnames(wwfregions)=='chtl01')+j-1] <- 
       as.numeric(model1$coef[5])
   }  
@@ -272,11 +266,18 @@ for (j in 1:12){
   bioclimatechange[,which(colnames(bioclimatechange)=='newp01')+j-1] <- pmax(exp(log(bioclimatechange[,which(colnames(bioclimatechange)=='p01')+j-1] + 1) - bioclimatechange[,which(colnames(bioclimatechange)=='chp01')+j-1]*20) - 1, 0) #predict precip, ensure that precip is never negative.
 }
 
-
-
-
-
-
+bioclimatechange <- bioclimatechange[bioclimatechange$Source %in%'2010 Normals',]
+for (j in 1:12){  
+  bioclimatechange[,which(colnames(bioclimatechange)=='t01')+j-1] <- bioclimatechange[,which(colnames(bioclimatechange)=='newt01')+j-1] 
+  
+  bioclimatechange[,which(colnames(bioclimatechange)=='tl01')+j-1] <-   bioclimatechange[,which(colnames(bioclimatechange)=='newtl01')+j-1]
+  
+  bioclimatechange[,which(colnames(bioclimatechange)=='p01')+j-1] <-   bioclimatechange[,which(colnames(bioclimatechange)=='newp01')+j-1]
+}
+bioclimatechange$Norm<- 1990
+#Need to identify bad extrapolations...
+bioclimatechange<- bioclimatechange[,colnames(Biomeclimate)]
+Biomeclimate <- rbind(Biomeclimate, bioclimatechange)
 #---- Begin summary
 Biomeclimate$b01 <- 0
 Biomeclimate$b02 <- 0
