@@ -30,7 +30,7 @@ globstations <- merge(globhistclim, ecolink2[,c('ID','ECO_ID', 'ECO_NAME', 'BIOM
 adjprecipitation <- readRDS("data/adjprecipitation.RDS") #Global historic climate
 rawprecipitation <- readRDS("data/rawprecipitation.RDS") #Global historic climate
 GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS") #Global historic climate
-clmchg <- readRDS("data/clmchg.RDS") #random point data sampled from worldclim.org grids of climate models 
+#clmchg <- readRDS("data/clmchg.RDS") #random point data sampled from worldclim.org grids of climate models 
 clmchgagg <- readRDS("data/clmchgagg.RDS") #random point data sampled from worldclim.org grids of climate models 
 #clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
 
@@ -145,7 +145,7 @@ Biomeclimate$wts<- ifelse(Biomeclimate$Source %in% 'GHCN', 100,1)
 #generate Uniq ID
 Biomeclimate$ID <- seq.int(nrow(Biomeclimate))
 rm(ecolink, Norms2010, Norms2010pre, biomesummary, Biomeclimatepre, globstationspre)
-Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","Station_ID","Station_Name","State","Norm", "Source","wts", "Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
+Biomeclimate<-Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","biomname","Station_ID","Station_Name","State","Norm", "Source","wts", "Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12","p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12")]
 N1990 <- Biomeclimate[Biomeclimate$Norm == 1990,]
 N2010 <- Biomeclimate[Biomeclimate$Norm == 2010,]
 NGHCN <- Biomeclimate[Biomeclimate$Source == 'GHCN',]
@@ -292,14 +292,64 @@ Biomeclimate <- Biomeclimate[Biomeclimate$Source %in% c('WorldClim.org', '2010 N
 rm(bioclimatechange, ecolink2, globstations, model1, N1990, N2010, NGHCN, USH_station, USH_stationjoin, wwfregions, wwfregions3, wwfregions2, wwfregions1)
  
 Biomeclimate$chglink <- paste(round(Biomeclimate$Latitude,1), round(Biomeclimate$Longitude,1))
-clmchg$chglink <- paste(round(clmchg$Latitude,1), round(clmchg$Longitude,1))
+#clmchg$chglink <- paste(round(clmchg$Latitude,1), round(clmchg$Longitude,1))
 #clmchgagg <- aggregate(clmchg[,3:110], by=list(clmchg$chglink), FUN='mean', na.rm=TRUE)
 #saveRDS(clmchgagg, 'data/clmchgagg.RDS')
 #colnames(clmchgagg)[1] <- 'chglink'
-#climchangemerge <- merge(Biomeclimate, clmchgagg, by=c('chglink'), all.x = TRUE)
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = TRUE)
 
+for (j in 1:12){  
+  ch$newTx <- ch[,which(colnames(ch)=='cc45tx501')+j-1]/10 #cclgmtx1
+  ch$newTn <- ch[,which(colnames(ch)=='cc45tn501')+j-1]/10 #cclgmtn1
+  ch$newP <- ch[,which(colnames(ch)=='cc45pr501')+j-1] #cclgmpr1
+  
+  ch$refTx <- ch[,which(colnames(ch)=='tmax_1')+j-1]/10
+  ch$refTn <- ch[,which(colnames(ch)=='tmin_1')+j-1]/10
+  ch$refP <- ch[,which(colnames(ch)=='prec_1')+j-1]
+  
+  ch$oldT <- ch[,which(colnames(ch)=='t01')+j-1]
+  ch$oldTn <- ch[,which(colnames(ch)=='tl01')+j-1]
+  ch$oldP <- ch[,which(colnames(ch)=='p01')+j-1]  
+  
+  ch[,which(colnames(ch)=='t01')+j-1] <- (ch$newTx + ch$newTn)/2 - (ch$refTx + ch$refTn)/2 + ch$oldT
+  
+  ch[,which(colnames(ch)=='tl01')+j-1] <-   ch$newTn - ch$refTn + ch$oldTn
+  
+  ch[,which(colnames(ch)=='p01')+j-1] <-   pmax(exp(log(ch$newP + 1) - log(ch$refP + 1) + log(ch$oldP + 1))-1,0)
+}
+ch$Norm <- 2070
+ch$Source <- 'Future'
+ch <- ch[,colnames(Biomeclimate)]
+Biomeclimate <- rbind(Biomeclimate, ch)
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = TRUE)
 
-selec1 <- climchangemerge[is.na(climchangemerge$cc45pr508),]
+for (j in 1:12){  
+  ch$newTx <- ch[,which(colnames(ch)=='cclgmtx1')+j-1]/10
+  ch$newTn <- ch[,which(colnames(ch)=='cclgmtn1')+j-1]/10
+  ch$newP <- ch[,which(colnames(ch)=='cclgmpr1')+j-1] 
+  
+  ch$refTx <- ch[,which(colnames(ch)=='tmax_1')+j-1]/10
+  ch$refTn <- ch[,which(colnames(ch)=='tmin_1')+j-1]/10
+  ch$refP <- ch[,which(colnames(ch)=='prec_1')+j-1]
+  
+  ch$oldT <- ch[,which(colnames(ch)=='t01')+j-1]
+  ch$oldTn <- ch[,which(colnames(ch)=='tl01')+j-1]
+  ch$oldP <- ch[,which(colnames(ch)=='p01')+j-1]  
+  
+  ch[,which(colnames(ch)=='t01')+j-1] <- (ch$newTx + ch$newTn)/2 - (ch$refTx + ch$refTn)/2 + ch$oldT
+  
+  ch[,which(colnames(ch)=='tl01')+j-1] <-   ch$newTn - ch$refTn + ch$oldTn
+  
+  ch[,which(colnames(ch)=='p01')+j-1] <-   pmax(exp(log(ch$newP + 1) - log(ch$refP + 1) + log(ch$oldP + 1))-1,0)
+}
+ch$Norm <- -25000
+ch$Source <- 'LGM'
+ch <- ch[,colnames(Biomeclimate)]
+Biomeclimate <- rbind(Biomeclimate, ch)
+
+Biomeclimate <-subset(Biomeclimate, select = -c(chglink, wts))
+#saveRDS(Biomeclimate,'data/preBiomeclimate.rds')
+#Biomeclimate <- readRDS('data/preBiomeclimate.rds')
 
 #---- Begin summary
 Biomeclimate$b01 <- 0
@@ -404,7 +454,7 @@ Biomeclimate <- subset(Biomeclimate, select = -c(pacificsouth,amazon1,amazon2, p
 
 DaysMonth$declination <- 0.409*sin(2*3.141592*DaysMonth$Day_/365-1.39)
 
-Daylength <- merge(unique(Biomeclimate[,1:7]), DaysMonth)
+Daylength <- merge(unique(Biomeclimate[,c('ID', "Latitude","Longitude")]), DaysMonth)
 Daylength$Daylength <- ifelse(Daylength$Latitude + Daylength$declination*360/2/3.141592 > 89.16924, 24, ifelse(Daylength$Latitude - Daylength$declination*360/2/3.141592 >= 90, 0, (atan(-((sin(-0.83/360*2*3.141592)-sin(Daylength$declination)*sin(Daylength$Latitude/360*2*3.141592))/(cos(Daylength$declination)*cos(Daylength$Latitude/360*2*3.141592)))/(-((sin(-0.83/360*2*3.141592)-sin(Daylength$declination)*sin(Daylength$Latitude/360*2*3.141592))/(cos(Daylength$declination)*cos(Daylength$Latitude/360*2*3.141592)))*((sin(-0.83/360*2*3.141592)-sin(Daylength$declination)*sin(Daylength$Latitude/360*2*3.141592))/(cos(Daylength$declination)*cos(Daylength$Latitude/360*2*3.141592)))+1)^0.5)+2*atan(1))/3.141592*24))
 
 Biomeclimate$Dn01 <- 31
@@ -561,6 +611,16 @@ Biomeclimate$Surplus <- (Biomeclimate$s01+
                           Biomeclimate$s11+
                           Biomeclimate$s12)
 Biomeclimate <- subset(Biomeclimate, select= -c(b01,b02,b03,b04,b05,b06,b07,b08,b09,b10,b11,b12,s01,s02,s03,s04,s05,s06,s07,s08,s09,s10,s11,s12,d01,d02,d03,d04,d05,d06,d07,d08,d09,d10,d11,d12,aet01,aet02,aet03,aet04,aet05,aet06,aet07,aet08,aet09,aet10,aet11,aet12))
+Biomeclimate <- 
+  Biomeclimate[,c("ID","ECO_ID","ECO_NAME","BIOME","biomname","Station_ID","Station_Name","State","Norm",
+"Source","Latitude","Longitude","Elevation","t01","t02","t03","t04","t05","t06","t07",
+"t08","t09","t10","t11","t12","p01","p02","p03","p04","p05",
+"p06","p07","p08","p09","p10","p11","p12","tl01","tl02","tl03",
+"tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12","th01",
+"th02","th03","th04","th05","th06","th07","th08","th09","th10","th11",
+"th12","Tg","Tc","Tcl","Tw","Twh","Tclx","e01","e02","e03",
+"e04","e05","e06","e07","e08","e09","e10","e11","e12","pAET",
+"Deficit","Surplus")]
 saveRDS(Biomeclimate, file='data/Biomeclimate.RDS')
 
 #_Biomeclimate <- readRDS(file='C:/workspace2/BiomeClimate/data/Biomeclimate.RDS')
