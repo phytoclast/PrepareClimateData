@@ -31,7 +31,11 @@ adjprecipitation <- readRDS("data/adjprecipitation.RDS") #Global historic climat
 rawprecipitation <- readRDS("data/rawprecipitation.RDS") #Global historic climate
 GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS") #Global historic climate
 #clmchg <- readRDS("data/clmchg.RDS") #random point data sampled from worldclim.org grids of climate models 
-clmchgagg <- readRDS("data/clmchgagg.RDS") #random point data sampled from worldclim.org grids of climate models 
+#write.csv(clmchg, 'C:/a/Ecological_Sites/GIS/Climate/worldclim/clmchg.csv')
+#clmchg2 <- read.csv('C:/a/Ecological_Sites/GIS/Climate/worldclim/Export_Output_5.txt')
+#clmchg2 <- unique(clmchg2[,3:184])
+#saveRDS(clmchg2, 'data/clmchg2')
+clmchgagg <- readRDS("data/clmchgagg2.RDS") #random point data sampled from worldclim.org grids of climate models 
 #clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
 
 #Global historic climate---- 
@@ -291,14 +295,16 @@ Biomeclimate <- Biomeclimate[Biomeclimate$Source %in% c('WorldClim.org', '2010 N
 
 #work in the climate change ----
 rm(bioclimatechange, ecolink2, globstations, model1, N1990, N2010, NGHCN, USH_station, USH_stationjoin, wwfregions, wwfregions3, wwfregions2, wwfregions1)
- 
+#remove rows with no data...
+clmchgagg <- subset(clmchgagg, ccmidpr1!= -9999)
 Biomeclimate$chglink <- paste(round(Biomeclimate$Latitude,1), round(Biomeclimate$Longitude,1))
-#clmchg$chglink <- paste(round(clmchg$Latitude,1), round(clmchg$Longitude,1))
-#clmchgagg <- aggregate(clmchg[,3:110], by=list(clmchg$chglink), FUN='mean', na.rm=TRUE)
-#saveRDS(clmchgagg, 'data/clmchgagg.RDS')
+#clmchg2$chglink <- paste(round(clmchg2$Latitude,1), round(clmchg2$Longitude,1))
+#clmchgagg <- aggregate(clmchg2[,3:182], by=list(clmchg2$chglink), FUN='mean', na.rm=TRUE)
 #colnames(clmchgagg)[1] <- 'chglink'
-ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = TRUE)
+#saveRDS(clmchgagg, 'data/clmchgagg2.RDS')
 
+#2070 45
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = FALSE)
 for (j in 1:12){  
   ch$newTx <- ch[,which(colnames(ch)=='cc45tx501')+j-1]/10 #cclgmtx1
   ch$newTn <- ch[,which(colnames(ch)=='cc45tn501')+j-1]/10 #cclgmtn1
@@ -319,11 +325,38 @@ for (j in 1:12){
   ch[,which(colnames(ch)=='p01')+j-1] <-   pmax(exp(log(ch$newP + 1) - log(ch$refP + 1) + log(ch$oldP + 1))-1,0)
 }
 ch$Norm <- 2070
-ch$Source <- 'Future'
+ch$Source <- 'Moderate Global Warming'
 ch <- ch[,colnames(Biomeclimate)]
 Biomeclimate <- rbind(Biomeclimate, ch)
-ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = TRUE)
 
+#2070 45
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = FALSE)
+for (j in 1:12){  
+  ch$newTx <- ch[,which(colnames(ch)=='cc85tx501')+j-1]/10 #cclgmtx1
+  ch$newTn <- ch[,which(colnames(ch)=='cc85tn501')+j-1]/10 #cclgmtn1
+  ch$newP <- ch[,which(colnames(ch)=='cc85pr501')+j-1] #cclgmpr1
+  
+  ch$refTx <- ch[,which(colnames(ch)=='tmax_1')+j-1]/10
+  ch$refTn <- ch[,which(colnames(ch)=='tmin_1')+j-1]/10
+  ch$refP <- ch[,which(colnames(ch)=='prec_1')+j-1]
+  
+  ch$oldT <- ch[,which(colnames(ch)=='t01')+j-1]
+  ch$oldTn <- ch[,which(colnames(ch)=='tl01')+j-1]
+  ch$oldP <- ch[,which(colnames(ch)=='p01')+j-1]  
+  
+  ch[,which(colnames(ch)=='t01')+j-1] <- (ch$newTx + ch$newTn)/2 - (ch$refTx + ch$refTn)/2 + ch$oldT
+  
+  ch[,which(colnames(ch)=='tl01')+j-1] <-   ch$newTn - ch$refTn + ch$oldTn
+  
+  ch[,which(colnames(ch)=='p01')+j-1] <-   pmax(exp(log(ch$newP + 1) - log(ch$refP + 1) + log(ch$oldP + 1))-1,0)
+}
+ch$Norm <- 2071
+ch$Source <- 'Severe Global Warming'
+ch <- ch[,colnames(Biomeclimate)]
+Biomeclimate <- rbind(Biomeclimate, ch)
+
+#LGM
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = FALSE)
 for (j in 1:12){  
   ch$newTx <- ch[,which(colnames(ch)=='cclgmtx1')+j-1]/10
   ch$newTn <- ch[,which(colnames(ch)=='cclgmtn1')+j-1]/10
@@ -348,6 +381,32 @@ ch$Source <- 'LGM'
 ch <- ch[,colnames(Biomeclimate)]
 Biomeclimate <- rbind(Biomeclimate, ch)
 
+#MHO
+ch <- merge(Biomeclimate[Biomeclimate$Norm == 1990,], clmchgagg, by=c('chglink'), all.x = FALSE)
+for (j in 1:12){  
+  ch$newTx <- ch[,which(colnames(ch)=='ccmidtx1')+j-1]/10
+  ch$newTn <- ch[,which(colnames(ch)=='ccmidtn1')+j-1]/10
+  ch$newP <- ch[,which(colnames(ch)=='ccmidpr1')+j-1] 
+  
+  ch$refTx <- ch[,which(colnames(ch)=='tmax_1')+j-1]/10
+  ch$refTn <- ch[,which(colnames(ch)=='tmin_1')+j-1]/10
+  ch$refP <- ch[,which(colnames(ch)=='prec_1')+j-1]
+  
+  ch$oldT <- ch[,which(colnames(ch)=='t01')+j-1]
+  ch$oldTn <- ch[,which(colnames(ch)=='tl01')+j-1]
+  ch$oldP <- ch[,which(colnames(ch)=='p01')+j-1]  
+  
+  ch[,which(colnames(ch)=='t01')+j-1] <- (ch$newTx + ch$newTn)/2 - (ch$refTx + ch$refTn)/2 + ch$oldT
+  
+  ch[,which(colnames(ch)=='tl01')+j-1] <-   ch$newTn - ch$refTn + ch$oldTn
+  
+  ch[,which(colnames(ch)=='p01')+j-1] <-   pmax(exp(log(ch$newP + 1) - log(ch$refP + 1) + log(ch$oldP + 1))-1,0)
+}
+ch$Norm <- -4000
+ch$Source <- 'MHO'
+ch <- ch[,colnames(Biomeclimate)]
+Biomeclimate <- rbind(Biomeclimate, ch)
+#finish climate change
 Biomeclimate <-subset(Biomeclimate, select = -c(chglink, wts))
 #saveRDS(Biomeclimate,'data/preBiomeclimate.rds')
 #Biomeclimate <- readRDS('data/preBiomeclimate.rds')
