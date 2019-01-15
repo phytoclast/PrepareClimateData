@@ -648,7 +648,8 @@ for (i in 0:11){
   Biomeclimate[,which(colnames(Biomeclimate)=='e01')+i] <- 216.7*6.108*exp(17.26939*
                                                                              Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]/(Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+237.3))/
     (Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+273.3)*0.1651*(Biomeclimate[,which(colnames(Biomeclimate)=='Dl01')+i]*0.3997833
-                                                                          /12)*Biomeclimate[,which(colnames(Biomeclimate)=='Dn01')+i]*0.2606*(11.6741)^0.5 + 0.001
+                                                                          /12)*Biomeclimate[,which(colnames(Biomeclimate)=='Dn01')+i]*0.2606*abs((Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i] - Biomeclimate[,which(colnames(Biomeclimate)=='tl01')+i])*2)^0.5 + 0.001
+  
   
 }
 
