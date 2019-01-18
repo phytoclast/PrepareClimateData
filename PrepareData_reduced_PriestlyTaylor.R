@@ -640,7 +640,7 @@ Biomeclimate$e12 <- 0
 #----
 
 for (i in 0:11){
-  Biomeclimate$hs = acos(pmin(pmax(-tan(Biomeclimate$Latitude/360*2*3.141592) * tan(DaysMonth[i+1,]$declination),0),1))
+  Biomeclimate$hs = acos(pmin(pmax(-tan(Biomeclimate$Latitude/360*2*3.141592) * tan(DaysMonth[i+1,]$declination),-1),1))
   Biomeclimate[,which(colnames(Biomeclimate)=='Dl01')+i] = 
     117.5 * (Biomeclimate$hs*sin(Biomeclimate$Latitude/360*2*3.141592)*sin(DaysMonth[i+1,]$declination) +
                cos(Biomeclimate$Latitude/360*2*3.141592)*cos(DaysMonth[i+1,]$declination)*sin(Biomeclimate$hs)) / 3.141592
