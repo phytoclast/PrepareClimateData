@@ -411,18 +411,18 @@ Biomeclimate <-subset(Biomeclimate, select = -c(chglink, wts))
 #saveRDS(Biomeclimate,'data/preBiomeclimate.rds')
 #Biomeclimate <- readRDS('data/preBiomeclimate.rds')
 #reduce data size----
-Biomeclimate$climblock <- paste(floor(Biomeclimate$Latitude),floor(Biomeclimate$Latitude/2.5),floor(Biomeclimate$Elevation/500) )
+#Biomeclimate$climblock <- paste(floor(Biomeclimate$Latitude),floor(Biomeclimate$Latitude/2.5),floor(Biomeclimate$Elevation/500) )
 
-climblocks <- aggregate(Biomeclimate[,c("Latitude","Longitude","Elevation",
-                                        "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
-                                        "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
-                                        "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ],
-                        by=list(Biomeclimate$ECO_ID,Biomeclimate$ECO_NAME,Biomeclimate$BIOME, Biomeclimate$biomname, Biomeclimate$Norm, Biomeclimate$climblock), FUN='mean')
+#climblocks <- aggregate(Biomeclimate[,c("Latitude","Longitude","Elevation",
+#                                        "t01","t02","t03","t04","t05","t06","t07","t08","t09","t10","t11","t12",
+#                                        "tl01","tl02","tl03","tl04","tl05","tl06","tl07","tl08","tl09","tl10","tl11","tl12",
+#                                        "p01","p02","p03","p04","p05","p06","p07","p08","p09","p10","p11","p12") ],
+#                        by=list(Biomeclimate$ECO_ID,Biomeclimate$ECO_NAME,Biomeclimate$BIOME, Biomeclimate$biomname, Biomeclimate$Norm, Biomeclimate$climblock), FUN='mean')
 
-colnames(climblocks)[1:6] <- c('ECO_ID', 'ECO_NAME', 'BIOME', 'biomname', 'Norm','climblock')
+#colnames(climblocks)[1:6] <- c('ECO_ID', 'ECO_NAME', 'BIOME', 'biomname', 'Norm','climblock')
 
-climblocks <- subset(climblocks, select = -c(climblock))
-Biomeclimate <- climblocks
+#climblocks <- subset(climblocks, select = -c(climblock))
+#Biomeclimate <- climblocks
 rm(clmchgagg, selectb, selectbioclim, ch)
 #---- Begin summary
 Biomeclimate$b01 <- 0
@@ -655,6 +655,7 @@ for (i in 0:11){
   
 }
 
+
 Biomeclimate <- subset(Biomeclimate, 
                        select = -c(-hs, Dn01, Dn02, Dn03, Dn04, Dn05, Dn06, Dn07, Dn08, Dn09, Dn10, Dn11, Dn12, 
                                    Dl01, Dl02, Dl03, Dl04, Dl05, Dl06, Dl07, Dl08, Dl09, Dl10, Dl11, Dl12))
@@ -758,6 +759,6 @@ Biomeclimate <-
                   "th12","Tg","Tc","Tcl","Tw","Twh","Tclx","e01","e02","e03",
                   "e04","e05","e06","e07","e08","e09","e10","e11","e12","pAET",
                   "Deficit","Surplus")]
-saveRDS(Biomeclimate, file='data/RadBiomeclimate.RDS')
+saveRDS(Biomeclimate, file='data/bigRadBiomeclimate.RDS')
 
 #_Biomeclimate <- readRDS(file='C:/workspace2/BiomeClimate/data/Biomeclimate.RDS')
