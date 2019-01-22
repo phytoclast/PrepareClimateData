@@ -584,59 +584,7 @@ Biomeclimate$e11 <- 0
 Biomeclimate$e12 <- 0
 
 
-#experimental----
 
-
-#PT = 1.25
-#Tmax = 30
-#Tmin = 15
-#Tavg <- (Tmax + Tmin)/2
-#s = 4.903e-9
-#a = 1.1
-#b = -0.1
-#Albedo <- 0.1
-#lat = 60
-#DaysMonth$Ra <- 117.5 * (acos(min(max(-tan(lat/360*2*3.141592) * tan(DaysMonth$declination),0),1))*sin(lat/360*2*3.141592)*sin(DaysMonth$declination) +
-#                          cos(lat/360*2*3.141592)*cos(DaysMonth$declination)*sin(acos(min(max(-tan(lat/360*2*3.141592) * tan(DaysMonth$declination),0),1)))) / 3.141592
-
-#DaysMonth$hs = acos(pmin(pmax(-tan(lat/360*2*3.141592) * tan(DaysMonth$declination),0),1))
-#DaysMonth$Ra<- 117.5 * (DaysMonth$hs*sin(lat/360*2*3.141592)*sin(DaysMonth$declination) +
-#                           cos(lat/360*2*3.141592)*cos(DaysMonth$declination)*sin(DaysMonth$hs)) / 3.141592
-
-
-#d <- asin(0.39785 * sin(4.869 + 0.0172 * day + 0.03345 * sin(6.224 + 0.0172 * day ) ) )
-#DEmiss = -0.02 + 0.261 * exp(-7.8e-4 * Tavg^2)
-#Albedo = 0.1
-# declination <- 0.409*sin(2*3.141592*day/365-1.39)
-
-
-#Radsolarcloudless <-  Radpot * 0.75
-#Radsw = (1 - Albedo) * Radsolar
-#Radlw = -(a * Radsolar*Radsolarcloudless + b) * DEmiss * s * ((Tmax + 273.1)^4 + (Tmin + 273.1)^4)/2
-
-#Radnet = Radsw + Radlw
-#Pressure <- 96 #pressure changes with altitude
-#T0 = 288.15
-#g = 9.80665
-#R0 = 8.31447
-#h=500
-#M = 0.0289644 
-#Pressure <- 101.325 *exp(-g*h*M/(T0*R0))
-
-#Cp <- 0.001
-#lambda = 2.501 - Tavg * 0.002361
-#y <- (Cp * Pressure)/(0.622 * lambda)
-#SoilHeatFlux = Radnet * 0.1
-#VPsat <- 0.611 * exp(17.27 * T / (T + 237.3))
-#Slopevpf <-	VPsat * 4098 * (Tavg + 237.3)^2
-
-
-
-#E <- (PT * Slopevpf * (Radnet - SoilHeatFlux))/(Slopevpf + y)
-
-#alph = 1+(PT - 1)*k*VPD
-
-#E =  1/(lambda)*Slopevpf*Radnet/(Slopevpf + y)*alph
 #----
 
 for (i in 0:11){
@@ -645,11 +593,11 @@ for (i in 0:11){
     117.5 * (Biomeclimate$hs*sin(Biomeclimate$Latitude/360*2*3.141592)*sin(DaysMonth[i+1,]$declination) +
                cos(Biomeclimate$Latitude/360*2*3.141592)*cos(DaysMonth[i+1,]$declination)*sin(Biomeclimate$hs)) / 3.141592
   
-  Biomeclimate[,which(colnames(Biomeclimate)=='e01')+i] <- 0.1082*
+  Biomeclimate[,which(colnames(Biomeclimate)=='e01')+i] <- 0.008099*
     216.7*exp(17.26939*
                 Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]/(Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+237.3))/
     (Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+273.3)*
-    (Biomeclimate[,which(colnames(Biomeclimate)=='Dl01')+i]/12)*Biomeclimate[,which(colnames(Biomeclimate)=='Dn01')+i]*
+    (Biomeclimate[,which(colnames(Biomeclimate)=='Dl01')+i])*Biomeclimate[,which(colnames(Biomeclimate)=='Dn01')+i]*
     abs((Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i] - Biomeclimate[,which(colnames(Biomeclimate)=='tl01')+i])*2)^0.5 + 0.001
   
   
