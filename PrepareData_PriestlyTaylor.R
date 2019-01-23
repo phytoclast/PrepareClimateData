@@ -593,7 +593,7 @@ for (i in 0:11){
     117.5 * (Biomeclimate$hs*sin(Biomeclimate$Latitude/360*2*3.141592)*sin(DaysMonth[i+1,]$declination) +
                cos(Biomeclimate$Latitude/360*2*3.141592)*cos(DaysMonth[i+1,]$declination)*sin(Biomeclimate$hs)) / 3.141592
   
-  Biomeclimate[,which(colnames(Biomeclimate)=='e01')+i] <- 0.008099*
+  Biomeclimate[,which(colnames(Biomeclimate)=='e01')+i] <- 0.008404*
     216.7*exp(17.26939*
                 Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]/(Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+237.3))/
     (Biomeclimate[,which(colnames(Biomeclimate)=='t01')+i]+273.3)*
