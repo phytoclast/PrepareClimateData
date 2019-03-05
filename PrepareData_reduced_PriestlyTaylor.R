@@ -14,8 +14,9 @@ library(car)
 library(ggplot2)
 #calculate percentiles
 library(plyr)
-
 Biomeclimate <- readRDS("data/BiomeClimate3.RDS") #random point data from worldclim.org grids
+norfolkisland <- read.csv("data/norfolkisland.csv")
+Biomeclimate <- rbind(Biomeclimate,norfolkisland)
 DaysMonth <- readRDS("data/DaysMonth.RDS")
 biomesummary <- readRDS("data/biomesummary.RDS") #link between biome number and name
 Norms2010 <- readRDS("data/Norms2010.RDS") #US Climate Norms 1981-2010
@@ -37,6 +38,9 @@ GHC_ELEMENTS <- readRDS("data/GHC_ELEMENTS.RDS") #Global historic climate
 #saveRDS(clmchg2, 'data/clmchg2')
 clmchgagg <- readRDS("data/clmchgagg2.RDS") #random point data sampled from worldclim.org grids of climate models 
 #clmchg fields: cclgmpr1 | cclgmtn1 | cclgmtx1 = last glacial maximum; cc45pr501 | cc45tn501 | cc45tx501 = future climate 2070 conservative; prec_1 | tmin_1 | tmax_1= present climate 1990; tn or tmin is daily minimum, pr or prec is precipitation; tx or tmax is daily maximum. Numbering 1-12 is month.
+
+#norfolk <- Biomeclimate[grepl('Norfolk',Biomeclimate$ECO_NAME), ]
+
 
 #Global historic climate---- 
 ghc_prec <- rbind(adjprecipitation, rawprecipitation)
